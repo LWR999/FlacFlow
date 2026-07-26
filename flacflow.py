@@ -11,6 +11,7 @@ import json
 import logging
 import re
 import shutil
+import unicodedata
 from pathlib import Path
 from typing import Dict, List, Optional
 import uuid
@@ -419,7 +420,30 @@ class FlacFlowProcessor:
                             
         except Exception as e:
             self.logger.error(f"Error cleaning up files in {directory}: {e}")
-    
+
+    def normalize_unicode_names(self, path: Path) -> Path:
+        """Recursively rename files/folders under path (and path itself) to NFC
+        Unicode normalization, so names display consistently on Ubuntu and macOS."""
+        try:
+            if path.is_dir():
+                for child in sorted(path.iterdir()):
+                    self.normalize_unicode_names(child)
+
+            normalized_name = unicodedata.normalize('NFC', path.name)
+            if normalized_name == path.name:
+                return path
+
+            new_path = path.parent / normalized_name
+            if new_path.exists():
+                self.logger.warning(f"Cannot normalize '{path}' to NFC: '{new_path}' already exists")
+                return path
+
+            path.rename(new_path)
+            return new_path
+        except Exception as e:
+            self.logger.error(f"Error normalizing unicode names in {path}: {e}")
+            return path
+
     def process_single_album(self, album_path: Path, album_info: Dict) -> bool:
         """Process a single-disc album"""
         try:
@@ -529,8 +553,9 @@ class FlacFlowProcessor:
         
         try:
             album_path = Path(album_path)
+            album_path = self.normalize_unicode_names(album_path)
             album_info = self.analyze_album(album_path)
-            
+
             if album_info['status'] in ['warning', 'duplicate']:
                 return {'success': False, 'error': 'Album has warnings or is duplicate'}
             
