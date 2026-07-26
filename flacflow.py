@@ -663,53 +663,109 @@ FULL_TEMPLATE = """
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>FlacFlow - Music Library Processor</title>
+    <script>
+        (function() {
+            const stored = localStorage.getItem('flacflow-theme');
+            const theme = stored || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+            document.documentElement.setAttribute('data-theme', theme);
+        })();
+    </script>
     <style>
+        :root {
+            --bg: #f5f7fa;
+            --header-text: #ffffff;
+            --card-bg: #ffffff;
+            --card-shadow: rgba(0,0,0,0.1);
+            --card-shadow-strong: rgba(0,0,0,0.1);
+            --text-primary: #2d3748;
+            --text-secondary: #4a5568;
+            --accent: #667eea;
+            --accent-hover: #5a67d8;
+            --danger: #e53e3e;
+            --border-warning: #f56565;
+            --border-duplicate: #ed8936;
+            --artwork-placeholder-bg: #e2e8f0;
+            --status-ready-bg: #c6f6d5;
+            --status-ready-text: #22543d;
+            --status-warning-bg: #fed7d7;
+            --status-warning-text: #742a2a;
+            --status-duplicate-bg: #fbb6ce;
+            --status-duplicate-text: #702459;
+            --modal-overlay: rgba(0,0,0,0.5);
+            --progress-bg: #f7fafc;
+            --progress-border: #e2e8f0;
+            --progress-track-bg: #e2e8f0;
+        }
+        :root[data-theme="dark"] {
+            --bg: #1a202c;
+            --card-bg: #2d3748;
+            --card-shadow: rgba(0,0,0,0.4);
+            --card-shadow-strong: rgba(0,0,0,0.5);
+            --text-primary: #e2e8f0;
+            --text-secondary: #a0aec0;
+            --accent: #7c8cf0;
+            --accent-hover: #8fa0f5;
+            --artwork-placeholder-bg: #4a5568;
+            --status-ready-bg: #22543d;
+            --status-ready-text: #c6f6d5;
+            --status-warning-bg: #742a2a;
+            --status-warning-text: #fed7d7;
+            --status-duplicate-bg: #702459;
+            --status-duplicate-text: #fbb6ce;
+            --modal-overlay: rgba(0,0,0,0.7);
+            --progress-bg: #2d3748;
+            --progress-border: #4a5568;
+            --progress-track-bg: #4a5568;
+        }
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f7fa; }
-        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 2rem 0; text-align: center; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg); color: var(--text-primary); }
+        .header { position: relative; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: var(--header-text); padding: 2rem 0; text-align: center; }
+        .theme-toggle { position: absolute; top: 1rem; right: 1.5rem; width: 40px; height: 40px; border: none; border-radius: 50%; background: rgba(255,255,255,0.15); color: var(--header-text); font-size: 1.2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .theme-toggle:hover { background: rgba(255,255,255,0.25); }
         .container { max-width: 1200px; margin: 0 auto; padding: 2rem; }
-        .nav-tabs { display: flex; background: white; border-radius: 8px; margin-bottom: 2rem; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        .nav-tab { flex: 1; padding: 1rem; text-align: center; border: none; background: none; cursor: pointer; font-size: 1rem; }
-        .nav-tab.active { background: #667eea; color: white; }
-        .controls { background: white; padding: 1.5rem; border-radius: 8px; margin-bottom: 2rem; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        .controls button { background: #667eea; color: white; border: none; padding: 0.75rem 1.5rem; margin: 0.25rem; border-radius: 6px; cursor: pointer; }
-        .controls button:hover { background: #5a67d8; }
-        .controls button.danger { background: #e53e3e; }
+        .nav-tabs { display: flex; background: var(--card-bg); border-radius: 8px; margin-bottom: 2rem; box-shadow: 0 2px 10px var(--card-shadow); }
+        .nav-tab { flex: 1; padding: 1rem; text-align: center; border: none; background: none; color: var(--text-primary); cursor: pointer; font-size: 1rem; }
+        .nav-tab.active { background: var(--accent); color: #ffffff; }
+        .controls { background: var(--card-bg); padding: 1.5rem; border-radius: 8px; margin-bottom: 2rem; box-shadow: 0 2px 10px var(--card-shadow); }
+        .controls button { background: var(--accent); color: #ffffff; border: none; padding: 0.75rem 1.5rem; margin: 0.25rem; border-radius: 6px; cursor: pointer; }
+        .controls button:hover { background: var(--accent-hover); }
+        .controls button.danger { background: var(--danger); }
         .album-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem; }
-        .album-card { background: white; border-radius: 12px; padding: 1.5rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .album-card.selected { border: 2px solid #667eea; }
-        .album-card.warning { border-left: 4px solid #f56565; }
-        .album-card.duplicate { border-left: 4px solid #ed8936; }
+        .album-card { background: var(--card-bg); border-radius: 12px; padding: 1.5rem; box-shadow: 0 4px 6px var(--card-shadow-strong); }
+        .album-card.selected { border: 2px solid var(--accent); }
+        .album-card.warning { border-left: 4px solid var(--border-warning); }
+        .album-card.duplicate { border-left: 4px solid var(--border-duplicate); }
         .album-header { display: flex; align-items: center; margin-bottom: 1rem; }
         .album-checkbox { margin-right: 1rem; }
         .album-title { flex: 1; font-weight: 600; }
         .album-actions { display: flex; gap: 0.5rem; }
         .btn-small { padding: 0.4rem 0.8rem; font-size: 0.8rem; border: none; border-radius: 4px; cursor: pointer; }
-        .btn-delete { background: #e53e3e; color: white; }
-        .album-artwork { width: 80px; height: 80px; object-fit: cover; border-radius: 8px; margin-bottom: 1rem; background: #e2e8f0; }
+        .btn-delete { background: var(--danger); color: #ffffff; }
+        .album-artwork { width: 80px; height: 80px; object-fit: cover; border-radius: 8px; margin-bottom: 1rem; background: var(--artwork-placeholder-bg); }
         .album-info { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; font-size: 0.9rem; }
-        .info-label { font-weight: 600; color: #4a5568; }
-        .info-value { color: #2d3748; }
+        .info-label { font-weight: 600; color: var(--text-secondary); }
+        .info-value { color: var(--text-primary); }
         .status-badge { padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.8rem; font-weight: 600; }
-        .status-ready { background: #c6f6d5; color: #22543d; }
-        .status-warning { background: #fed7d7; color: #742a2a; }
-        .status-duplicate { background: #fbb6ce; color: #702459; }
+        .status-ready { background: var(--status-ready-bg); color: var(--status-ready-text); }
+        .status-warning { background: var(--status-warning-bg); color: var(--status-warning-text); }
+        .status-duplicate { background: var(--status-duplicate-bg); color: var(--status-duplicate-text); }
         .warnings { margin-top: 0.5rem; }
-        .warning-item { background: #fed7d7; color: #742a2a; padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.8rem; margin: 0.25rem 0; }
+        .warning-item { background: var(--status-warning-bg); color: var(--status-warning-text); padding: 0.25rem 0.5rem; border-radius: 4px; font-size: 0.8rem; margin: 0.25rem 0; }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
-        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); }
-        .modal-content { background: white; margin: 10% auto; padding: 2rem; width: 90%; max-width: 500px; border-radius: 12px; }
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: var(--modal-overlay); }
+        .modal-content { background: var(--card-bg); color: var(--text-primary); margin: 10% auto; padding: 2rem; width: 90%; max-width: 500px; border-radius: 12px; }
         .modal-buttons { display: flex; gap: 1rem; justify-content: flex-end; margin-top: 1.5rem; }
-        .progress-container { background: #f7fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 1rem; }
+        .progress-container { background: var(--progress-bg); border: 1px solid var(--progress-border); border-radius: 8px; padding: 1rem; }
         .progress-info { display: flex; justify-content: space-between; margin-bottom: 0.5rem; font-weight: 600; }
-        .progress-bar { width: 100%; height: 20px; background: #e2e8f0; border-radius: 10px; overflow: hidden; margin-bottom: 0.5rem; }
+        .progress-bar { width: 100%; height: 20px; background: var(--progress-track-bg); border-radius: 10px; overflow: hidden; margin-bottom: 0.5rem; }
         .progress-fill { height: 100%; background: linear-gradient(90deg, #48bb78, #38a169); border-radius: 10px; transition: width 0.3s ease; }
-        .progress-details { font-size: 0.9rem; color: #4a5568; }
+        .progress-details { font-size: 0.9rem; color: var(--text-secondary); }
     </style>
 </head>
 <body>
     <div class="header">
+        <button id="themeToggle" class="theme-toggle" onclick="toggleTheme()" title="Toggle dark/light mode">🌙</button>
         <h1>🎵 FlacFlow</h1>
         <p>Automated FLAC Music Library Processing</p>
     </div>
@@ -1173,11 +1229,25 @@ FULL_TEMPLATE = """
                 modal.style.display = 'none';
             });
         }
-        
+
+        function syncThemeToggleIcon() {
+            const theme = document.documentElement.getAttribute('data-theme') || 'light';
+            document.getElementById('themeToggle').textContent = theme === 'dark' ? '☀️' : '🌙';
+        }
+
+        function toggleTheme() {
+            const current = document.documentElement.getAttribute('data-theme') || 'light';
+            const next = current === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', next);
+            localStorage.setItem('flacflow-theme', next);
+            syncThemeToggleIcon();
+        }
+
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
+            syncThemeToggleIcon();
             refreshAlbums();
-            
+
             window.onclick = function(event) {
                 if (event.target.classList.contains('modal')) {
                     closeModal();
